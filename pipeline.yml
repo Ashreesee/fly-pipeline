@@ -1,0 +1,57 @@
+resources:
+  - name: react-app-repo
+    type: git
+    source:
+      uri: https://github.com/Ashreesee/AI.git
+      branch: main
+
+  - name: react-app-image
+    type: registry-image
+    source:
+      repository: ashreesee/my-react-app
+      tag: latest
+      username: "ashreesee"
+      password: "^kyYjiNR82ihur%"
+
+  - name: fly-pipeline-repo
+    type: git
+    source:
+      uri: https://github.com/Ashreesee/fly-pipeline.git
+      branch: main
+
+jobs:
+  - name: fetch-react-app
+    public: true
+    plan:
+      - get: fly-pipeline-repo
+        trigger: true
+      - task: fetch-react-repo
+        file: fly-pipeline-repo/tasks/fetch-react-repo.yml
+      - put: react-app-repo
+        params:
+          REPO_URL: "https://github.com/Ashreesee/AI.git"
+
+  - name: build-react-app
+    public: true
+    plan:
+      - get: react-app-repo
+        passed: [fetch-react-app]
+        trigger: true
+      - task: build-react-app
+        file: fly-pipeline-repo/tasks/build-react-app.yml
+
+  - name: build-and-push-docker
+    public: true
+    plan:
+      - get: react-app-repo
+        passed: [build-react-app]
+        trigger: true
+      - task: build-and-push-docker
+        file: fly-pipeline-repo/tasks/build-and-push-docker.yml
+        params:
+          DOCKERHUB_USERNAME: "ashreesee"
+          DOCKERHUB_PASSWORD: "^kyYjiNR82ihur%"
+          IMAGE_NAME: "ashreesee/my-react-app"
+      - put: react-app-image
+        params:
+          image: image/image.tar
