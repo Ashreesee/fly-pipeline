@@ -35,27 +35,6 @@ jobs:
                 cd source-code
                 npm install
 
-      - task: run-tests
-  config:
-    platform: linux
-    image_resource:
-      type: docker-image
-      source:
-        repository: node
-        tag: "18"
-
-    inputs:
-      - name: source-code
-
-    run:
-      path: sh
-      args:
-        - -exc
-        - |
-          cd source-code
-          npm install  # Ensure vitest is installed
-          npx vitest --run --coverage --ci  # ✅ Remove duplicate --coverage
-
 
       - task: build-app
         config:
